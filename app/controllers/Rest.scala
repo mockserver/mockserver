@@ -65,10 +65,14 @@ object Rest extends Controller {
 			val q = for {
 			  s <- ServiceRests if s.path === mock
 			} yield s
-			q.first
+			q.list
 		}
 		
-		Ok(s"${service.name}")
+		service match {
+			case service::Nil => Ok(s"${service.name}")
+			case _ => NotFound("Mock service not found")
+		}
+		
 	}
 
 	def datetime() = Action {

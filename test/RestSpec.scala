@@ -66,9 +66,13 @@ object RestSpec extends Specification {
 
 			 running(FakeApplication()) {
         		
-        		val service = route(FakeRequest(GET, "/mock/rest/datetime")).get
+        		val serviceOk = route(FakeRequest(GET, "/mock/rest/datetime")).get
         		
-        		contentAsString(service) mustEqual "JSON Date & Time"
+        		contentAsString(serviceOk) mustEqual "JSON Date & Time"
+
+        		val serviceKo = route(FakeRequest(GET, "/mock/rest/datetimex")).get
+        		
+    		  	status(serviceKo) must not equalTo(OK)
 			}
 			
 		}
