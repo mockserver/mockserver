@@ -1,0 +1,14 @@
+<ul class="nav nav-list">
+	<li class="service" ng-repeat="service in services">
+		<p>Service name {{service.name}}</p>
+		<p>Service endpoint {{service.endpoint}}</p>
+	</li>
+</ul>
+
+<ul class="nav nav-list">
+	<li class="request" ng-repeat="request in requests">
+		<p>Request id: {{request.requestId}}</p>
+		<p>Request content: {{request.content}}</p>
+		<p>Response content: {{request.response.content}}</p>
+	</li>
+</ul>
