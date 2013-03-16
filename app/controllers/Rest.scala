@@ -35,9 +35,9 @@ import models.db._
 
 object Rest extends Controller {
 
-	lazy val database = Database.forDataSource(DB.getDataSource())
+	implicit val ServiceRestWrites = Json.writes[ServiceRest]
 
-	var counter:Int = 0
+	lazy val database = Database.forDataSource(DB.getDataSource())
 
 	val asJson: Enumeratee[Event, JsValue] = Enumeratee.map[Event] { 
 		case req:Request => Json.obj("event" -> "request", "requestId" -> req.requestId, "content" -> req.content)
@@ -55,30 +55,31 @@ object Rest extends Controller {
 		}
 	}	
 
-	def req(content:String) = Action {
+	def req(mock: String) = Action { request =>
 
-		counter = counter + 1
-		
-		RestServer.send(Request(counter, content))
-		
-		Ok(s"Request $content sent")
-	}
+		println(s"$mock received")
 
-	def resp(requestId:String, content:String) = Action {
+		RestServer.send(Request(1, mock, Seq[Header](), ""))
+
+		val service = database withSession {
+			val q = for {
+			  s <- ServiceRests if s.path === mock
+			} yield s
+			q.first
+		}
 		
-		RestServer.send(Response(requestId.toInt, content))
-		
-		Ok(s"Response $content sent")
+		Ok(s"${service.name}")
 	}
 
 	def datetime() = Action {
+
 		val dateTime = new org.joda.time.DateTime
+		
 		Ok(Json.obj("time" -> dateTime.toLocalTime.toString, "date" -> dateTime.toLocalDate.toString))
+
 	}
 
 	def list() = Action {
-
-		implicit val ServiceRestWrites = Json.writes[ServiceRest]
 		
 		val json = database withSession {
 			val serviceRests = for (s <- ServiceRests) yield s

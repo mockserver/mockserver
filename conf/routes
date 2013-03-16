@@ -10,7 +10,7 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 GET /live							controllers.Rest.live
 GET /req/:content					controllers.Rest.req(content)
-GET /resp/:requestId/:content		controllers.Rest.resp(requestId, content)
 GET /test							controllers.Application.test
 GET /datetime						controllers.Rest.datetime
 GET /rest/list						controllers.Rest.list
+GET /mock/rest/:mock 				controllers.Rest.req(mock)

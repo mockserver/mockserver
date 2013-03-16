@@ -21,8 +21,8 @@ object Global extends GlobalSettings {
     
     database.withSession {
 		ServiceRests.ddl.create
-		ServiceRests.insert(ServiceRest(None, "JSON Date & Time", "http://127.0.0.1/datetime", "", "", true, "application/json"))
-		ServiceRests.insert(ServiceRest(None, "Say Hello", "http://127.0.0.1/hello", "", "", true, "application/json"))
+		ServiceRests.insert(ServiceRest(None, "JSON Date & Time", "datetime", "http://127.0.0.1/datetime", "", "", true, "application/json"))
+		ServiceRests.insert(ServiceRest(None, "Say Hello", "hello", "http://127.0.0.1/hello", "", "", true, "application/json"))
 	}
 	
 

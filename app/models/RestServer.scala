@@ -18,9 +18,12 @@ import play.api.libs.functional.syntax._
 
 trait Event
 
-case class Request(requestId:Int, content:String) extends Event
 
-case class Response(requestId:Int, content:String) extends Event
+case class Header(name: String, value: Option[String])
+
+case class Request(requestId:Int, path: String, headers: Seq[Header], content:String) extends Event
+
+case class Response(requestId:Int, path: String, headers: Seq[Header], content:String) extends Event
 
 case class Live(enumerator:Enumerator[Event])
 
