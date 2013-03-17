@@ -57,18 +57,19 @@ object Rest extends Controller {
 
 	def req(mock: String) = Action { request =>
 
-		println(s"$mock received")
+		val headers = request.headers.keys.map( key => Header( key, request.headers getAll key) )
 
-		RestServer.send(Request(1, mock, Seq[Header](), ""))
 
-		val service = database withSession {
+		RestServer.send(Request(1, mock, headers, ""))
+
+		val services = database withSession {
 			val q = for {
 			  s <- ServiceRests if s.path === mock
 			} yield s
 			q.list
 		}
 		
-		service match {
+		services match {
 			case service::Nil => Ok(s"${service.name}")
 			case _ => NotFound("Mock service not found")
 		}
