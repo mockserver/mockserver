@@ -1,6 +1,6 @@
 package test
 
-import models.db._
+import models.rest._
 
 import scala.slick.driver.H2Driver.simple._
 
@@ -40,39 +40,49 @@ object RestDbSpec extends Specification {
 		"print two services in the console" in testDb {
 
 			Query(ServiceRests) foreach { service:ServiceRest =>
+		 		
 		 		printService(service)
 		 		
 		 		service.id must not beNone
 		 		
-		 		service.id.map { id =>
-		 			id < 3 must beTrue
-	 			}
-		 	}
-		}
+		 		service.id.map { id => id < 3 must beTrue
 
-		"return two items in result" in testDb {
+ 			}
+	 	}
+	}
+
+	"return two items in result" in testDb {
 
 			val services = for(s <- ServiceRests) yield s
+	
 			services.list must have size(2)
 		}
 	}
 }
 
-object RestSpec extends Specification {
+object RestSpec extends Specification with org.specs2.matcher.ResultMatchers {
 
 	"A rest call" should {
 
-		"return a valide response in proxy mode" in {
+		"return a valid response in proxy mode" in {
 
-			 running(FakeApplication()) {
+			import play.api.libs.json._
+
+			 running(TestServer(9000)) {
         		
+        		val realServiceOk = route(FakeRequest(GET, "/datetime")).get
+
+        		status(realServiceOk) mustEqual OK
+
         		val serviceOk = route(FakeRequest(GET, "/mock/rest/datetime")).get
-        		
-        		contentAsString(serviceOk) mustEqual "JSON Date & Time"
+
+        		val json: JsValue = Json.parse(contentAsString(serviceOk))
+
+        		(json \ "date").toString() must beMatching("^\"\\d{4}-\\d{2}-\\d{2}\"$")
 
         		val serviceKo = route(FakeRequest(GET, "/mock/rest/datetimex")).get
         		
-    		  	status(serviceKo) must not equalTo(OK)
+    		  	status(serviceKo) must not equalTo OK
 			}
 			
 		}

@@ -23,7 +23,7 @@ case class Header(name: String, value: Seq[String])
 
 case class Request(requestId:Int, path: String, headers: Set[Header], content:String) extends Event
 
-case class Response(requestId:Int, path: String, headers: Set[Header], content:String) extends Event
+case class Response(requestId:Int, headers: Set[Header], content:String) extends Event
 
 case class Live(enumerator:Enumerator[Event])
 

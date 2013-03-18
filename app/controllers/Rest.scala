@@ -11,11 +11,12 @@ import play.api.libs.concurrent.Akka
 
 import play.api.Play.current
 
-import scala.concurrent.Await
+import scala.concurrent._
+import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.actor.Props
 import akka.util.Timeout
-import scala.concurrent.duration._
+
 
 import play.api.libs.EventSource.EventNameExtractor
 
@@ -31,9 +32,11 @@ import play.api.db._
 import play.api.libs.functional.syntax._
 
 import models.rest._
-import models.db._
+import models._
 
 object Rest extends Controller {
+
+	private val logger = Logger("application")
 
 	implicit val ServiceRestWrites = Json.writes[ServiceRest]
 
@@ -53,27 +56,42 @@ object Rest extends Controller {
 				enumerator:Enumerator[Event] => Ok.feed(enumerator &> asJson ><> EventSource()).as("text/event-stream")	
 			}
 		}
+	}
+
+	private def call(service:ServiceRest) = {
+
+		import play.api.libs.ws._
+
+		logger.info(s"A new request is received at the endpoint ${service.endpoint}")
+
+		WS.url(service.endpoint).get
 	}	
 
 	def req(mock: String) = Action { request =>
+		Async {
+			future {
+				val headers = request.headers.keys.map( key => Header( key, request.headers getAll key) )
 
-		val headers = request.headers.keys.map( key => Header( key, request.headers getAll key) )
+				RestServer.send(Request(1, mock, headers, ""))
 
-
-		RestServer.send(Request(1, mock, headers, ""))
-
-		val services = database withSession {
-			val q = for {
-			  s <- ServiceRests if s.path === mock
-			} yield s
-			q.list
+				val services = database withSession {
+					val q = for {
+					  s <- ServiceRests if s.path === mock
+					} yield s
+					q.list
+				}
+				
+				services match {
+					case service::Nil =>
+					 Async { call(service).map{ resp => 
+							RestServer.send(models.rest.Response(1, Set[models.rest.Header](), resp.body)) 
+							Ok( resp.body )
+						} 
+					}
+					case _ => NotFound("Mock service not found")
+				}
+			}
 		}
-		
-		services match {
-			case service::Nil => Ok(s"${service.name}")
-			case _ => NotFound("Mock service not found")
-		}
-		
 	}
 
 	def datetime() = Action {
@@ -85,12 +103,14 @@ object Rest extends Controller {
 	}
 
 	def list() = Action {
-		
-		val json = database withSession {
-			val serviceRests = for (s <- ServiceRests) yield s
-			serviceRests.list
+		Async{
+			future {	
+				val json = database withSession {
+					val serviceRests = for (s <- ServiceRests) yield s
+					serviceRests.list
+				}
+				Ok(Json.obj("result" -> json))
+			}
 		}
-
-		Ok(Json.obj("result" -> json))
 	}
 }

@@ -4,17 +4,7 @@
 
 var testReq = function(){
    $.ajax({
-        url: '/req/hello',
-        async: false,
-        success: function(data) {
-          console.debug(data);
-        }
-      });
- };
-
-var testResp = function(requestId){
-   $.ajax({
-        url: '/resp/' + requestId + '/world',
+        url: '/mock/rest/datetime',
         async: false,
         success: function(data) {
           console.debug(data);
@@ -34,12 +24,11 @@ describe('MockServer', function() {
 
       expect(repeater('.request').count()).toBe(0);
 
-      setTimeout(testReq,2500);
-      setTimeout(testReq,3000);
+      setTimeout(testReq, 3000);
 
       sleep(4);
 
-      expect(repeater('.request').count()).toBe(2);
+      expect(repeater('.request').count()).toBe(1);
 
       sleep(2);
       

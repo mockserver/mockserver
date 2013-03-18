@@ -1,4 +1,4 @@
-package models.db
+package models.rest
 
 import scala.language.experimental.macros
 
